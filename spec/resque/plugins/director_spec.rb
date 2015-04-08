@@ -10,7 +10,7 @@ describe Resque::Plugins::Director do
   end
   
   describe "#after_enqueue_scale_workers" do
-    it "should scale the workers to within the requirments specified" do
+    it "should scale the workers to within the requirements specified" do
       Resque::Worker.new(:test).register_worker
       Resque::Plugins::Director::Scaler.should_receive(:scale_within_requirements)
       Resque.enqueue(TestJob)
@@ -32,6 +32,20 @@ describe Resque::Plugins::Director do
       Resque::Plugins::Director::Scaler.should_not_receive(:scale_within_requirements)
       TestJob.direct :no_enqueue_scale => true
       Resque.enqueue(TestJob)
+    end
+
+    context "when multiple queues are configured" do
+      before do
+        Resque::Worker.new(:test).register_worker
+        TestJob.direct :min_workers => 2
+        AnotherTestJob.direct :min_workers => 1
+      end
+
+      it "should scale the workers to within the requirements specified" do
+        # This is intentionally an integration test because it exhibits the flaw in design
+        Resque::Plugins::Director::Scaler.should_receive(:start).with(1)
+        Resque.enqueue(TestJob)
+      end
     end
   end
   
