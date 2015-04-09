@@ -23,7 +23,7 @@ module Resque
             stop(number_of_workers)
           end
 
-          def scale_within_requirements
+          def scale_within_requirements(config)
             number_of_workers = WorkerTracker.total_for_requirements
             if number_of_workers > 0
               set_last_scaled unless start(number_of_workers) == false
